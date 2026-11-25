@@ -99,3 +99,51 @@ def read_author_category(
                 books_to_return.append(book)
 
     return books_to_return
+
+
+
+'''Important: The new_book variable
+ receives whatever data the client sends in the request body.'''
+@app.post("/books/create_book")
+async def create_book(new_book = Body()):
+    BOOKS.append(new_book)
+
+# PUT: Update a book by title
+@app.put("/books/update_book")
+async def update_book(updated_book=Body()):
+    for i in range(len(BOOKS)):
+        if BOOKS[i].get('title').casefold() == updated_book.get('title').casefold():
+            BOOKS[i] = updated_book
+            break
+
+## Delete without body ( This is the recommended way to delete a resource )
+@app.delete("/books/delete_book/{book_title}")
+async def delete_book(book_title: str):
+    for i in range(len(BOOKS)):
+        if BOOKS[i].get("title").casefold() == book_title.casefold():
+            BOOKS.pop(i)
+            break
+
+## If delete have a body 
+@app.delete("/books/delete_book_with_body")
+async def delete_book(book_title=Body()):
+    for i in range(len(BOOKS)):
+        if BOOKS[i].get("title").casefold() == book_title.casefold():
+            BOOKS.pop(i)
+            break
+
+
+## What happen if we want to read a book by title but the title is sent in the request body instead of path parameter?
+@app.get("/bookstitle_with_body")
+async def read_book(book_title =Body()):
+    for book in BOOKS:
+        if book.get("title").casefold() == book_title.casefold():
+            return book
+    '''Note: Returning an error dictionary above produces a normal successful HTTP 
+    response unless you explicitly set an error status. 
+    A more appropriate implementation uses HTTPException(status_code=404).'''
+
+    raise HTTPException(
+    status_code=404,
+    detail="Book not found"
+    )
